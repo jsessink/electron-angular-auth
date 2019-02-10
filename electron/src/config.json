@@ -1,0 +1,11 @@
+{
+	"express": {
+		"protocol" : "",
+		"port"     : 3000
+	},
+	"auth": {
+		"clientId" : "",
+		"tenantId" : "",
+		"resource" : "https://graph.microsoft.com"
+	}
+}

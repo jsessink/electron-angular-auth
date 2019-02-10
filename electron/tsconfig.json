@@ -1,0 +1,31 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"target": "es6",
+		"moduleResolution": "node",
+		"outDir": "./dist",
+		"lib": [
+			"es6",
+			"dom"
+		],
+		"module": "commonjs",
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": false,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"pretty" : true,
+		"removeComments": true,
+		"inlineSourceMap": true,
+		"inlineSources": true,
+		"resolveJsonModule": true,
+		"typeRoots": [
+			"node_modules/@types"
+		],
+		"types": [
+			"node"
+		]
+	},
+	"include": [
+		"./src"
+	]
+}
