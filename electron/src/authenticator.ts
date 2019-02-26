@@ -34,7 +34,8 @@ export class Authenticator {
 
 	private async checkAuth() {
 		await this.initializeAuthWindow();
-		const refreshToken = await this.getRefreshTokenFromStorage();
+		// const refreshToken = await this.getRefreshTokenFromStorage();
+		const refreshToken = null;
 
 		if (refreshToken) {
 			// Stop the server and close the auth window since we no longer need it for authentication
@@ -54,14 +55,14 @@ export class Authenticator {
 		});
 
 		ipcMain.on('refreshAccessToken', (event, refreshToken) => {
-			const tokenRequestUrl = `https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/token`;
+			const tokenRequestUrl = `https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/v2.0/token`;
 
 			// No PKCE code_verifier here, as the refresh has its own grant flow.
 			const tokenRequestBody = {
 				grant_type    : 'refresh_token',
 				client_id     : config.auth.clientId,
 				refresh_token : refreshToken,
-				resource      : config.auth.resource
+				scope         : config.auth.scope
 			};
 
 			request.post(
@@ -107,16 +108,16 @@ export class Authenticator {
 
 
 	/**
-	 * Authenticates a user to the service and grants an access_token for the specified resource.
+	 * Authenticates a user to the service and grants an access_token for the specified scope.
 	 */
 	private async authenticate() : Promise<void> {
 		this.authWindow.loadURL(`
-			https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/authorize?
+			https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/v2.0/authorize?
 				client_id=${config.auth.clientId}
 				&response_type=code
 				&redirect_uri=http://${config.express.protocol}:${config.express.port}
 				&response_mode=query
-				&resource=${config.auth.resource}
+				&scope=${config.auth.scope}
 				&state=${authStateIdentifier}
 				&code_challenge_method=S256
 				&code_challenge=${authPKCEChallenge}
@@ -131,20 +132,21 @@ export class Authenticator {
 
 				// Ensure our original State identifier that we created matches the returned state value in the response.
 				if (_accessCode && _state === authStateIdentifier) {
-					const tokenRequestUrl = `https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/token`;
+					const tokenRequestUrl = `https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/v2.0/token`;
 
 					const tokenRequestBody = {
 						grant_type    : 'authorization_code',
 						client_id     : config.auth.clientId,
 						code          : _accessCode,
 						redirect_uri  : `http://${config.express.protocol}:${config.express.port}`,
-						resource      : config.auth.resource,
+						scope         : config.auth.scope,
 						code_verifier : authPKCEVerifier
 					};
 
 					request.post(
 						{ url: tokenRequestUrl, form: tokenRequestBody },
 						(err, httpResponse, body) => {
+							console.log(body);
 							this.authWindow.loadURL(`http://${config.express.protocol}:${config.express.port}`);
 							this.handleAccessTokenResponse(err, httpResponse, body);
 							this.authWindow.close();
@@ -211,14 +213,14 @@ export class Authenticator {
 
 
 	public refreshAccessToken(refreshToken) {
-		const tokenRequestUrl = `https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/token`;
+		const tokenRequestUrl = `https://login.microsoftonline.com/${config.auth.tenantId}/oauth2/v2.0/token`;
 
 		// No PKCE code_verifier here, as the refresh has its own grant flow.
 		const tokenRequestBody = {
 			grant_type    : 'refresh_token',
 			client_id     : config.auth.clientId,
 			refresh_token : refreshToken,
-			resource      : config.auth.resource
+			scope         : config.auth.scope
 		};
 
 		request.post(
@@ -238,7 +240,7 @@ export class Authenticator {
 
 		session.defaultSession.cookies.remove(cookie.url, cookie.name, () => {
 			this.authWindow.show();
-			this.authWindow.loadURL('https://login.microsoftonline.com/common/oauth2/logout');
+			this.authWindow.loadURL('https://login.microsoftonline.com/common/oauth2/v2.0/logout');
 			this.authWindow.webContents.on('did-finish-load', () => {
 				this.authWindow.close();
 				this.expressApp.stop();

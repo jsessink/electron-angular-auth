@@ -1,11 +1,11 @@
 {
 	"express": {
-		"protocol" : "",
+		"protocol" : "localhost",
 		"port"     : 3000
 	},
 	"auth": {
 		"clientId" : "",
 		"tenantId" : "",
-		"resource" : "https://graph.microsoft.com"
+		"scope"    : ""
 	}
 }

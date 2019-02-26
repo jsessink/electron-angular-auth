@@ -23,7 +23,7 @@ class Electron {
 				click:() => this.authenticator.logout()
 			})
 		);
-		Menu.setApplicationMenu(menu);
+		// Menu.setApplicationMenu(menu);
 
 		// Create the browser window.
 		let mainWindow = new BrowserWindow(
